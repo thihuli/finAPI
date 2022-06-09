@@ -9,17 +9,23 @@ const customers = [];
 
 app.post("/account", (request, response) => {
   const { cpf, name } = request.body;
-  const id = uuidv4();
 
-  console.log(customers)
+  const customerAlreadyExists = customers.some(
+    (customer) => customer.cpf === cpf
+  );
 
+  if (customerAlreadyExists) {
+    return response.status(400).json({error: "Usuário já existe"})
+  }
+  
   customers.push({
     cpf,
     name,
-    id,
+    id: uuidv4(),
     statement: []
   });
-
+  
+  console.log(customers)
   return response.status(201).send("Conta criada com sucesso")
 
 });
