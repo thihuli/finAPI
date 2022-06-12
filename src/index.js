@@ -14,7 +14,7 @@ function verifyIfExistsAccountCPF(request, response, next) {
   const customer = customers.find(customer => customer.cpf === cpf);
 
   if (!customer) {
-    return response.status(400).json({error: "Usuário não encontrado"})
+    return response.status(400).json({ error: "Usuário não encontrado" })
   }
 
   //repassando informação da middleware para a request
@@ -43,27 +43,27 @@ app.post("/account", (request, response) => {
   );
 
   if (customerAlreadyExists) {
-    return response.status(400).json({error: "Usuário já existe"})
+    return response.status(400).json({ error: "Usuário já existe" })
   }
-  
+
   customers.push({
     cpf,
     name,
     id: uuidv4(),
     statement: []
   });
-  
-  return response.status(201).json({msg: "Conta criada com sucesso", customers} )
+
+  return response.status(201).json({ msg: "Conta criada com sucesso", customers })
 });
 
 app.get("/statement", verifyIfExistsAccountCPF, (request, response) => {
   //recuperando o customer repassao da middleware
   const { customer } = request;
-  
+
 
 
   return response.json(customer.statement)
-})
+});
 
 app.post("/deposito", verifyIfExistsAccountCPF, (request, response) => {
   const { description, amount } = request.body;
@@ -79,7 +79,7 @@ app.post("/deposito", verifyIfExistsAccountCPF, (request, response) => {
 
   customer.statement.push(statementOperation)
 
-  return response.status(201).json({msg: "Deposito Feito com sucesso"})
+  return response.status(201).json({ msg: "Deposito Feito com sucesso" })
 })
 
 app.post("/saque", verifyIfExistsAccountCPF, (request, response) => {
@@ -89,7 +89,7 @@ app.post("/saque", verifyIfExistsAccountCPF, (request, response) => {
   const balance = getBalance(customer.statement);
 
   if (balance < amount) {
-    return response.status(400).json({error: "Saldo insuficiente!"})
+    return response.status(400).json({ error: "Saldo insuficiente!" })
   }
 
   const statementOperation = {
@@ -101,6 +101,21 @@ app.post("/saque", verifyIfExistsAccountCPF, (request, response) => {
   customer.statement.push(statementOperation);
 
   return response.status(201).send("Saque realizado com sucesso")
-})
+});
+
+app.get("/statement/date", verifyIfExistsAccountCPF, (request, response) => {
+  //recuperando o customer repassao da middleware
+  const { customer } = request;
+  const { date } = request.query;
+
+  const dateFormat = new Date(date + " 00:00");
+
+  const statement = customer.statement.filter(
+    (statement) =>
+      statement.created_at.toDateString() === new Date(dateFormat).toDateString()
+  )
+
+  return response.json(statement);
+});
 
 app.listen(3333);
